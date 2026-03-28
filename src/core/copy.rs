@@ -1,5 +1,4 @@
 use crate::cli::args::{BackupMode, CopyOptions, FollowSymlink};
-#[cfg(target_os = "linux")]
 use crate::core::fast_copy::fast_copy;
 use crate::error::{CopyError, CopyResult};
 use crate::utility::backup::{create_backup, generate_backup_path};
@@ -348,22 +347,19 @@ fn copy_core(
         }
     }
 
-    #[cfg(target_os = "linux")]
-    {
-        if options.abort.load(Ordering::Relaxed) {
-            return Err(CopyError::Io(io::Error::new(
-                io::ErrorKind::Interrupted,
-                "Operation aborted by user",
-            )));
+    if options.abort.load(Ordering::Relaxed) {
+        return Err(CopyError::Io(io::Error::new(
+            io::ErrorKind::Interrupted,
+            "Operation aborted by user",
+        )));
+    }
+    if let Ok(true) = fast_copy(source, destination, file_size, overall_pb, options) {
+        update_progress(overall_pb, completed_files, total_files, options);
+        if options.preserve != PreserveAttr::none() {
+            preserve::apply_preserve_attrs(source, destination, options.preserve)
+                .map_err(CopyError::from)?;
         }
-        if let Ok(true) = fast_copy(source, destination, file_size, overall_pb, options) {
-            update_progress(overall_pb, completed_files, total_files, options);
-            if options.preserve != PreserveAttr::none() {
-                preserve::apply_preserve_attrs(source, destination, options.preserve)
-                    .map_err(CopyError::from)?;
-            }
-            return Ok(());
-        }
+        return Ok(());
     }
 
     let mut src_file = std::fs::File::open(source)?;

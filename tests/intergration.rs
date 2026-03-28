@@ -1050,7 +1050,12 @@ fn test_config_init() {
         .assert()
         .success();
 
-    let config_path = temp.path().join(".config/cpx/cpxconfig.toml");
+    let config_path = if cfg!(target_os = "macos") {
+        temp.path()
+            .join("Library/Application Support/cpx/cpxconfig.toml")
+    } else {
+        temp.path().join(".config/cpx/cpxconfig.toml")
+    };
     assert!(config_path.exists());
 
     let contents = fs::read_to_string(&config_path).unwrap();
@@ -1062,7 +1067,11 @@ fn test_config_init() {
 #[test]
 fn test_config_init_force_overwrite() {
     let temp = assert_fs::TempDir::new().unwrap();
-    let config_dir = temp.path().join(".config/cpx");
+    let config_dir = if cfg!(target_os = "macos") {
+        temp.path().join("Library/Application Support/cpx")
+    } else {
+        temp.path().join(".config/cpx")
+    };
     fs::create_dir_all(&config_dir).unwrap();
 
     let config_path = config_dir.join("cpxconfig.toml");
@@ -1102,7 +1111,11 @@ fn test_config_path() {
 #[test]
 fn test_no_config_flag() {
     let temp = assert_fs::TempDir::new().unwrap();
-    let config_dir = temp.path().join(".config/cpx");
+    let config_dir = if cfg!(target_os = "macos") {
+        temp.path().join("Library/Application Support/cpx")
+    } else {
+        temp.path().join(".config/cpx")
+    };
     fs::create_dir_all(&config_dir).unwrap();
 
     let config_path = config_dir.join("cpxconfig.toml");
