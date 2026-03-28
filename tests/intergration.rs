@@ -1213,7 +1213,7 @@ fn test_resume_with_size_mismatch() {
 }
 
 #[test]
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn test_reflink_auto() {
     let temp = assert_fs::TempDir::new().unwrap();
     let source = temp.child("source.txt");
@@ -1233,7 +1233,7 @@ fn test_reflink_auto() {
 }
 
 #[test]
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn test_reflink_never() {
     let temp = assert_fs::TempDir::new().unwrap();
     let source = temp.child("source.txt");
